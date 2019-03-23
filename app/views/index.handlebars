@@ -1,0 +1,65 @@
+<div class="meat-selection">
+	<div class="section-title">
+		<h2>Select a Meat</h2>
+	</div>
+	<div class="meat-wrapper">
+		<div class="meat-choice" data-meat="chicken">
+			<img src="https://storage.googleapis.com/portfolio-f2dfc.appspot.com/SpicePalette/img/chicken-silhouette.png" alt="chicken">
+		</div>
+		<div class="meat-choice" data-meat="beef">
+			<img src="https://storage.googleapis.com/portfolio-f2dfc.appspot.com/SpicePalette/img/cow-silhouette.png" alt="cow">
+		</div>
+		<div class="meat-choice" data-meat="fish">
+			<img src="https://storage.googleapis.com/portfolio-f2dfc.appspot.com/SpicePalette/img/fish-silhouette.png" alt="fish">
+		</div>
+	</div>
+</div>
+<div class="palette-section">
+	<div class="palette-wrapper">
+	{{#each spices}}
+		<div class='panel-holder'>
+			<div class="front">
+				<img class="spice-img" src="{{image}}" alt="{{title}}">
+				<div>{{title}}</div>
+			</div>
+			<div class="back">
+				<p>{{{description}}}</p>
+				{{#if uses}}
+				<p>
+					<span class="uses-subtitle">Uses: </span>
+					{{#each uses}}
+					<span>{{this}},</span>
+					{{/each}}
+				</p>
+				{{/if}}
+			</div>
+		</div>
+	{{/each}}
+	</div>
+</div>
+
+<script>
+	$(".meat-choice").on('click', function(event){
+		event.preventDefault();
+		
+		{{!-- Remove selected class from all other buttons --}}
+		$(".meat-choice").removeClass('selected');
+
+		{{!-- Apply the selected class to the clicked button --}}
+		$(this).addClass('selected');
+
+		console.log(`Meat choice: ${$(this).data('meat')}`);
+	});
+
+	$(window).on('scroll', function(event) {
+		if(window.scrollY > 100) {
+			$(".meat-choice.selected").addClass('minimize');
+			$(".meat-choice:not('.selected')").css('display', 'none');
+			$(".meat-selection").addClass('shrink');
+		} else {
+			$(".meat-choice.selected").removeClass('minimize');
+			$(".meat-choice:not('.selected')").css('display', 'block');
+			$(".meat-selection").removeClass('shrink');
+		}
+	});
+</script>

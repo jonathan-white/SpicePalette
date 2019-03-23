@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+  <meta name="description" content="Color Picker, Palette Picker">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Spice Palette</title>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css" integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
+	<link rel="stylesheet" href="css/spice-style.css">
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+</head>
+<body class="app">
+	
+	<div class="meat-selection">
+		<div class="section-title">
+			<h2>Select a Meat</h2>
+		</div>
+		<div class="meat-wrapper">
+			<div class="meat-choice" data-meat="chicken">
+				<img src="https://storage.googleapis.com/portfolio-f2dfc.appspot.com/SpicePalette/img/chicken-silhouette.png" alt="chicken">
+			</div>
+			<div class="meat-choice" data-meat="beef">
+				<img src="https://storage.googleapis.com/portfolio-f2dfc.appspot.com/SpicePalette/img/cow-silhouette.png" alt="cow">
+			</div>
+			<div class="meat-choice" data-meat="fish">
+				<img src="https://storage.googleapis.com/portfolio-f2dfc.appspot.com/SpicePalette/img/fish-silhouette.png" alt="fish">
+			</div>
+		</div>
+	</div>
+	<div class="palette-section">
+		<div class="refresh">
+			<div class="icon"><i class="fas fa-sync-alt"></i></div>
+		</div>
+		<div class="palette-wrapper"></div>
+	</div>
+
+	<div class="footer"></div>
+
+	<div class="signin">
+		<button>Sign in</button>
+	</div>
+
+	<script>
+		var selectedMeat;
+
+		$(".meat-choice").on('click', function(event){
+			event.preventDefault();
+
+			// Remove selected class from all other buttons
+			$(".meat-choice").removeClass('selected');
+	
+			// Apply the selected class to the clicked button
+			$(this).addClass('selected');
+			selectedMeat = $(this).data('meat');
+
+			fetchSpiceData();
+
+			console.log(`Meat choice: ${selectedMeat}`);
+		});
+	
+		$(window).on('scroll', function(event) {
+			if(window.scrollY > 100) {
+				$(".meat-choice.selected").addClass('minimize');
+				$(".meat-choice:not('.selected')").css('display', 'none');
+				$(".meat-selection").addClass('shrink');
+			} else {
+				$(".meat-choice.selected").removeClass('minimize');
+				$(".meat-choice:not('.selected')").css('display', 'block');
+				$(".meat-selection").removeClass('shrink');
+			}
+		});
+
+		$(".icon").on('click', function(event) {
+			event.preventDefault();
+			fetchSpiceData();
+		});
+
+		function fetchSpiceData() {
+			var route;
+			if(!selectedMeat) {
+				route = `/api/five-spices`;
+			} else {
+				route = `/api/five-spices-for-meat/${selectedMeat}`;
+			}
+			fetch(route)
+				.then(function(response){
+					response.json().then(function(data){
+	
+						const spiceSetCount = 5;
+						let ids = [];
+						let spiceRack = [];
+	
+						// Store all possible ids into an array
+						for (let i = 0; i < data.length; i++) {
+							ids.push(data[i].id);
+						}
+	
+						// Select a random spice
+						for (let i = 0; i < spiceSetCount; i++) {
+							var randomID = Math.floor(Math.random() * ids.length);
+							var selectedSpiceID = parseInt(ids.splice(randomID, 1));
+							spiceRack.push(data.filter(s => {
+								if(s.id === selectedSpiceID) return s;
+							})[0]);
+						}
+	
+						generatePanels(spiceRack);
+					});
+				});
+		}
+
+		function generatePanels(spiceSet){
+			$(".palette-wrapper").empty();
+
+			for (let i = 0; i < spiceSet.length; i++) {
+				var divPanelHolder = $("<div class='panel-holder'>");
+				var divFront = $("<div class='front'>");
+					var imgSpice = $("<img class='spice-img'>").attr({
+						"src": `https://storage.googleapis.com/portfolio-f2dfc.appspot.com/SpicePalette/${spiceSet[i].image}`,
+						"alt": spiceSet[i].title
+					});
+					var divTitle = $("<div>").text(spiceSet[i].title);
+					var divPungency = $("<div class='pungency'>");
+						for (let j = 0; j < parseInt(spiceSet[i].pungency); j++) {
+							const divPungencyChili = $(`<img>`);
+							divPungencyChili.addClass(`pungency-chili pepper-${spiceSet[i].pungency}`);
+							divPungencyChili.attr({
+								'src': 'https://storage.googleapis.com/portfolio-f2dfc.appspot.com/SpicePalette/img/chili_pepper.svg',
+								'alt': 'chili pepper'
+							});
+							divPungency.append(divPungencyChili);
+						}
+
+				var divBack = $("<div class='back'>");
+					var pDescr = $("<p>").html(`<span class='subtitle'>Description</span>: ${spiceSet[i].description}`);
+					var pUses = $("<p>");
+						var usesSubtitle = $("<span class='subtitle'>").text("Uses: ");
+						pUses.append(usesSubtitle);
+						if(spiceSet[i].uses){
+							for (let j = 0, uses = spiceSet[i].uses; j < uses.length; j++) {
+								const spanUse = $("<span>").text(`${uses[j]}, `);
+								pUses.append(spanUse);
+							}
+						}
+				
+				$(".palette-wrapper").append(divPanelHolder);
+				divPanelHolder.append(divFront, divBack);
+				divFront.append(imgSpice, divTitle, divPungency);
+				divBack.append(pDescr, pUses);
+			}
+		}
+
+		fetchSpiceData();
+	</script>
+</body>
+</html>
